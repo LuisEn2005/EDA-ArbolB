@@ -18,8 +18,8 @@ class ArbolB{
     NodoB* raiz;
     int t;
     void insertarNoLleno(NodoB* nodo, int clave);
-    void dividirHijo(NodoB* padre, int posicion, NodoB* hijo);
-    void mostrar(NodoB* nodo) const;
+    void dividirHijo(NodoB* padre, int posicion);
+    void mostrar(NodoB* nodo, int nivel) const;
     void liberarMemoria(NodoB* nodo);
 
   public:

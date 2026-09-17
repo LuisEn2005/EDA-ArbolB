@@ -140,3 +140,14 @@ ArbolB::~ArbolB() {
   liberarMemoria(raiz);
   raiz = nullptr;
 }
+
+int ArbolB::obtenerPredecesor(NodoB* nodo, int idx){
+  if(raiz == nullptr || raiz->hoja == true) return false;
+  NodoB* y = nodo->hijos[idx];
+  while(y->hijos.back()->hoja == false) y = y->hijos.back();
+
+  for(int i = 0; i < y->hijos->claves.size())
+
+
+  return false;
+}

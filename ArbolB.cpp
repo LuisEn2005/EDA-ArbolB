@@ -144,10 +144,160 @@ ArbolB::~ArbolB() {
 int ArbolB::obtenerPredecesor(NodoB* nodo, int idx){
   if(raiz == nullptr || raiz->hoja == true) return false;
   NodoB* y = nodo->hijos[idx];
-  while(y->hijos.back()->hoja == false) y = y->hijos.back();
 
-  for(int i = 0; i < y->hijos->claves.size())
+  while(y->hoja == false) y = y->hijos.back();
 
+  return y->claves.back();
+}
 
-  return false;
+int ArbolB::obtenerSucesor(NodoB* nodo, int idx){
+  if(raiz == nullptr || raiz->hoja == true) return false;
+  NodoB* y = nodo->hijos[idx + 1];
+  
+  while(y->hoja == false) y = y->hijos.front();
+
+  return y->claves.front();
+}
+
+void ArbolB::prestarAnterior(NodoB* nodo, int idx){
+  if(raiz == nullptr || raiz->hoja == true) return;
+  
+  NodoB* y = nodo->hijos[idx];
+  NodoB* bro = nodo->hijos[idx-1];
+
+  y->claves.insert(y->claves.begin(), nodo->claves[idx-1]);
+  
+  if(y->hoja == false){
+    y->hijos.insert(y->hijos.begin(), bro->hijos.back());
+    bro->hijos.pop_back();
+  }
+
+  nodo->claves[idx-1] = bro->claves.back();
+  bro->claves.pop_back();  
+}
+
+void ArbolB::prestarSiguiente(NodoB* nodo, int idx){
+  if(raiz == nullptr || raiz->hoja == true) return;
+  
+  NodoB* y = nodo->hijos[idx];
+  NodoB* bro = nodo->hijos[idx+1];
+
+  y->claves.push_back(nodo->claves[idx]);
+
+  if(y->hoja == false){
+    y->hijos.push_back(bro->hijos.front());
+    bro->hijos.erase(bro->hijos.begin());
+  }
+
+  nodo->claves[idx] = bro->claves.front();
+
+  bro->claves.erase(bro->claves.begin());
+}
+
+void ArbolB::fusionar(NodoB* nodo, int idx){
+  NodoB* y = nodo->hijos[idx];
+  NodoB* bro = nodo->hijos[idx + 1];
+
+  y->claves.push_back(nodo->claves[idx]);
+
+  for(int i = 0; i < bro->claves.size(); i++){
+    y->claves.push_back(bro->claves[i]);
+  }
+  
+  if(!y->hoja){
+    for(int i = 0; i < bro->hijos.size(); i++){
+      y->hijos.push_back(bro->hijos[i]);
+    }
+  }
+
+  nodo->claves.erase(nodo->claves.begin() + idx);
+  nodo->hijos.erase(nodo->hijos.begin() + idx + 1);
+
+  delete bro;
+}
+
+void ArbolB::llenar(NodoB* nodo, int idx){
+  if(idx != 0 && nodo->hijos[idx - 1]->claves.size() >= t){
+    prestarAnterior(nodo, idx);
+  }
+
+  else if(idx != nodo->claves.size() && nodo->hijos[idx + 1]->claves.size() >= t){
+    prestarSiguiente(nodo, idx);
+  }
+
+  else{
+    if(idx != nodo->claves.size()){
+      fusionar(nodo, idx);
+    }
+    else{
+      fusionar(nodo, idx - 1);
+    }
+  }
+}
+
+void ArbolB::eliminarNodo(NodoB* nodo, int clave){
+  int idx = 0;
+  while (idx < nodo->claves.size() && nodo->claves[idx] < clave){
+    idx++;
+  }
+
+  if (idx < nodo->claves.size() && nodo->claves[idx] == clave){
+
+    if (nodo->hoja){
+      nodo->claves.erase(nodo->claves.begin() + idx);
+    } 
+    else{
+      if (nodo->hijos[idx]->claves.size() >= t){
+        int pred = obtenerPredecesor(nodo, idx);
+        nodo->claves[idx] = pred;
+        eliminarNodo(nodo->hijos[idx], pred);
+      } 
+      else if (nodo->hijos[idx + 1]->claves.size() >= t){
+        int suc = obtenerSucesor(nodo, idx);
+        nodo->claves[idx] = suc;
+        eliminarNodo(nodo->hijos[idx + 1], suc);
+      } 
+      else{
+        fusionar(nodo, idx);
+        eliminarNodo(nodo->hijos[idx], clave);
+      }
+    }
+  } 
+  else{
+    if (nodo->hoja){
+      std::cout << "La clave " << clave << " no existe en el arbol.\n";
+      return;
+    }
+
+    bool esUltimoHijo = (idx == nodo->claves.size());
+
+    if (nodo->hijos[idx]->claves.size() < t){
+      llenar(nodo, idx);
+    }
+
+    if (esUltimoHijo && idx > nodo->claves.size()){
+      eliminarNodo(nodo->hijos[idx - 1], clave);
+    } else {
+      eliminarNodo(nodo->hijos[idx], clave);
+    }
+  }
+}
+
+void ArbolB::eliminar(int clave){
+  if (raiz == nullptr){
+    std::cout << "El arbol esta vacio.\n";
+    return;
+  }
+
+  eliminarNodo(raiz, clave);
+
+  if (raiz->claves.empty()){
+    NodoB* temp = raiz;
+    if (raiz->hoja) {
+      raiz = nullptr;
+    } else {
+      raiz = raiz->hijos[0];
+    }
+    delete temp;
+  }
 }
